@@ -1,0 +1,106 @@
+@baseUrl = http://localhost:3000
+
+### 1. Health Check (Verify system status)
+GET {{baseUrl}}/health
+Accept: application/json
+
+###
+
+### 2. Shorten a URL (Auto-generated Base62 shortId)
+POST {{baseUrl}}/shorten
+Content-Type: application/json
+
+{
+  "originalUrl": "https://github.com/trending"
+}
+
+###
+
+### 3. Shorten a URL with Custom Alias
+POST {{baseUrl}}/shorten
+Content-Type: application/json
+
+{
+  "originalUrl": "https://news.ycombinator.com",
+  "customAlias": "hn-news"
+}
+
+###
+
+### 4. Shorten a URL with Expiration (TTL link)
+POST {{baseUrl}}/shorten
+Content-Type: application/json
+
+{
+  "originalUrl": "https://www.google.com",
+  "expiresAt": "2027-12-31T23:59:59.000Z"
+}
+
+###
+
+### 5. Shorten URL - Invalid URL format (Should return 400 Bad Request)
+POST {{baseUrl}}/shorten
+Content-Type: application/json
+
+{
+  "originalUrl": "invalid-url-string"
+}
+
+###
+
+### 6. Shorten URL - Duplicate Custom Alias (Should return 409 Conflict)
+POST {{baseUrl}}/shorten
+Content-Type: application/json
+
+{
+  "originalUrl": "https://news.ycombinator.com",
+  "customAlias": "hn-news"
+}
+
+###
+
+### 7. Redirect Short URL (GET Redirect)
+# Requesting this logs click metadata (IP, browser, device) asynchronously in the background.
+# In VS Code REST Client, this returns the redirect target and response headers.
+GET {{baseUrl}}/hn-news
+
+###
+
+### 8. Fetch Analytics Dashboard JSON (GET Analytics)
+GET {{baseUrl}}/analytics/hn-news
+Accept: application/json
+
+###
+
+### 9. Redirect Non-existent Short URL (Should return 404 Not Found)
+GET {{baseUrl}}/does-not-exist
+
+###
+
+### 10. Fetch Analytics for Non-existent URL (Should return 404 Not Found)
+GET {{baseUrl}}/analytics/does-not-exist
+
+###
+
+### 11. PUT request (Unsupported method - Should return 404 Route Not Found)
+PUT {{baseUrl}}/hn-news
+Content-Type: application/json
+
+{
+  "originalUrl": "https://news.ycombinator.com/news"
+}
+
+###
+
+### 12. DELETE request (Unsupported method - Should return 404 Route Not Found)
+DELETE {{baseUrl}}/hn-news
+
+###
+
+### 13. PATCH request (Unsupported method - Should return 404 Route Not Found)
+PATCH {{baseUrl}}/hn-news
+Content-Type: application/json
+
+{
+  "originalUrl": "https://news.ycombinator.com"
+}
