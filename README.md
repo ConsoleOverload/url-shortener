@@ -16,7 +16,7 @@ tags: #lms #coding #technical
 
 ---
 
-## 🚀 Features
+##  Features
 
 - Create short URLs from long links
 - Custom alias support
@@ -28,7 +28,7 @@ tags: #lms #coding #technical
 
 ---
 
-## 🏗 Tech Stack
+##  Tech Stack
 
 - Backend: Node.js, Express
 - Database: MongoDB (Mongoose)
@@ -38,7 +38,7 @@ tags: #lms #coding #technical
 
 ---
 
-## ⚙️ How It Works
+##  How It Works
 
 - User submits a long URL
 - Server generates a unique short ID (or custom alias)
@@ -48,7 +48,7 @@ tags: #lms #coding #technical
 
 ---
 
-## 📊 Analytics
+##  Analytics
 
 - **Tracks:**
 
@@ -60,7 +60,7 @@ tags: #lms #coding #technical
 
 ---
 
-## 🔐 Optimizations
+##  Optimizations
 
 - Cache-aside pattern using Redis
 - Cache stampede prevention
