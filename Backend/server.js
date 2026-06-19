@@ -17,7 +17,7 @@ const app = express();
 
 /**
  * Trust Proxy:
- * Enabled for rate limiting and geolocation tracking when deployed behind reverse proxies (like Render, AWS ALB, Nginx, etc.).
+ * Enabled for rate limiting and geolocation tracking when deployed behind reverse proxies like Render
  * Configures Express to trust headers like X-Forwarded-For.
  */
 app.set('trust proxy', 1);
