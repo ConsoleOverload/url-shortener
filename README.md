@@ -93,4 +93,6 @@ Tracks:
 
 ## System Flow
 
-<img src="./system-flow.png" width="250px">
+<p align="center">
+  <img src="system-flow.png" width="650">
+</p>
