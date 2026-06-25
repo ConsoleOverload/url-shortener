@@ -93,4 +93,5 @@ Tracks:
 
 ## System Flow
 
-./system-flow.png{ width=500px }
+![System Flow](./system-flow.png)
+
