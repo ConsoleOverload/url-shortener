@@ -5,18 +5,25 @@ theme: default
 paginate: true
 _class: lead
 title: URL Shortener
-date:
-tags: #lms #coding #technical
+description: Scalable URL Shortener System
 ---
 -->
 
 # URL Shortener
 
-- A scalable URL shortening service built with Node.js, Express, MongoDB, and Redis. It allows users to generate short links, handle redirections efficiently, and track click analytics.
+### Scalable Link Management System
 
 ---
 
-##  Features
+## Overview
+
+- A scalable URL shortening service built with Node.js, Express, MongoDB, and Redis.
+- Enables efficient link generation, redirection, and analytics tracking.
+- Designed with performance, reliability, and modular architecture.
+
+---
+
+## Features
 
 - Create short URLs from long links
 - Custom alias support
@@ -24,46 +31,66 @@ tags: #lms #coding #technical
 - Fast redirection using Redis caching
 - Click analytics (device, browser, location, referrer)
 - Rate limiting for abuse protection
-- Fault-tolerant design (works even if Redis is down)
+- Fault-tolerant design (operates even if Redis is unavailable)
 
 ---
 
-##  Tech Stack
+## Tech Stack
 
-- Backend: Node.js, Express
-- Database: MongoDB (Mongoose)
-- Caching: Redis
-- Frontend: React (optional UI)
-- Other: Axios, Helmet, Morgan, Rate Limiter
+### Backend
+- Node.js
+- Express
 
----
+### Data Layer
+- MongoDB (Mongoose)
 
-##  How It Works
+### Performance Layer
+- Redis
 
-- User submits a long URL
-- Server generates a unique short ID (or custom alias)
-- Mapping is stored in MongoDB and cached in Redis
-- When accessed, short URL redirects to original URL
-- Click data is logged asynchronously for analytics
+### Frontend (Optional)
+- React
 
----
-
-##  Analytics
-
-- **Tracks:**
-
-- Total clicks
-- Unique visitors
-- Device &amp; browser usage
-- Country &amp; city
-- Referrer sources
+### Utilities
+- Axios
+- Helmet
+- Morgan
+- Rate Limiter
 
 ---
 
-##  Optimizations
+## How It Works
 
-- Cache-aside pattern using Redis
-- Cache stampede prevention
-- Negative caching for invalid URLs
-- MongoDB TTL index for auto-expiry
-- Async logging to avoid slowing redirects
+1. User submits a long URL  
+2. Server generates a unique short ID or custom alias  
+3. Mapping stored in MongoDB and cached in Redis  
+4. User accesses short URL  
+5. Backend resolves original URL and redirects  
+6. Click data is logged asynchronously  
+
+---
+
+## Analytics
+
+Tracks:
+
+- Total clicks  
+- Unique visitors  
+- Device and browser usage  
+- Country and city distribution  
+- Referrer sources  
+
+---
+
+## Optimizations
+
+- Cache-aside pattern using Redis  
+- Cache stampede prevention  
+- Negative caching for invalid URLs  
+- MongoDB TTL index for auto-expiry  
+- Async logging to avoid blocking redirects  
+
+---
+
+## System Flow
+
+<img src="./system-flow.png" width="250px">
