@@ -20,7 +20,7 @@ const urls = [
 
 urls.forEach(item => {
   const result = validateUrl(item.url);
-  const status = result === item.expected ? '✅ PASSED' : '❌ FAILED';
+  const status = result === item.expected ? 'PASSED' : 'FAILED';
   console.log(`  - URL: "${item.url}" -> Valid: ${result} (Expected: ${item.expected}) [${status}]`);
 });
 
@@ -59,9 +59,9 @@ const ips = ['127.0.0.1', '8.8.8.8'];
 for (const ip of ips) {
   try {
     const geo = await getGeoInfo(ip);
-    console.log(`  - IP: "${ip}" -> Country: "${geo.country}", City: "${geo.city}" ✅`);
+    console.log(`  - IP: "${ip}" -> Country: "${geo.country}", City: "${geo.city}" `);
   } catch (error) {
-    console.log(`  - IP: "${ip}" -> Failed to fetch geo: ${error.message} ❌`);
+    console.log(`  - IP: "${ip}" -> Failed to fetch geo: ${error.message} `);
   }
 }
 
