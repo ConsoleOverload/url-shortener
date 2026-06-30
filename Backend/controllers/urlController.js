@@ -8,9 +8,10 @@ import { AppError } from '../utils/errors.js';
  */
 export const shortenUrl = async (req, res, next) => {
   try {
-    const { originalUrl, customAlias, expiresAt } = req.body;
+    const { originalUrl, customAlias, expiresAt, title } = req.body;
+    const userId = req.user?.userId || null;
 
-    const newUrl = await createShortUrl({ originalUrl, customAlias, expiresAt });
+    const newUrl = await createShortUrl({ originalUrl, customAlias, expiresAt, userId, title });
     
     // Fall back to host header if BASE_URL is not set in env variables
     const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.headers.host}`;

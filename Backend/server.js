@@ -5,6 +5,9 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import urlRoutes from './routes/urlRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import userUrlRoutes from './routes/userUrlRoutes.js';
+import { authMiddleware } from './middleware/authMiddleware.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 // Load environment configurations
@@ -55,7 +58,11 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date() });
 });
 
-// Mount URL and Redirect routes
+// Mount Auth and SaaS URL routes
+app.use('/api/auth', authRoutes);
+app.use('/api/urls', authMiddleware, userUrlRoutes);
+
+// Mount public URL and Redirect routes
 app.use('/', urlRoutes);
 
 // Fallback for unmatched routes

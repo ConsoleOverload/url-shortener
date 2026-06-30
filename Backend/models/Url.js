@@ -28,6 +28,17 @@ const urlSchema = new mongoose.Schema({
     type: Date,
     // TTL Index: MongoDB background process runs every 60 seconds to delete documents where expiresAt <= current time.
     index: { expires: 0 }
+  },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null,
+    index: true
+  },
+  title: {
+    type: String,
+    trim: true,
+    default: null
   }
 });
 

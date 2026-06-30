@@ -30,3 +30,18 @@ export const redirectLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false
 });
+
+/**
+ * Rate limiter for POST /register and POST /login auth endpoints to protect from brute force.
+ * Limits each IP to 10 requests per 15 minutes.
+ */
+export const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  message: {
+    success: false,
+    error: 'Too many authentication attempts. Please try again after 15 minutes.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});

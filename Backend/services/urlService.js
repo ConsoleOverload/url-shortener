@@ -1,7 +1,9 @@
+import mongoose from 'mongoose';
 import { customAlphabet } from 'nanoid';
 import validator from 'validator';
 import Url from '../models/Url.js';
-import { cacheSet, cacheGet } from './cacheService.js';
+import ClickLog from '../models/Analytics.js';
+import { cacheSet, cacheGet, cacheDelete } from './cacheService.js';
 import { AppError } from '../utils/errors.js';
 
 const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -52,7 +54,7 @@ export const validateUrl = (url) => {
  * Core business logic to create a short URL.
  * Supports custom aliases and expiration times. Deduplicates existing non-expiring URLs.
  */
-export const createShortUrl = async ({ originalUrl, customAlias, expiresAt }) => {
+export const createShortUrl = async ({ originalUrl, customAlias, expiresAt, userId, title }) => {
   // 1. Validate format
   if (!validateUrl(originalUrl)) {
     throw new AppError('Invalid or unsupported URL format.', 400);
@@ -89,7 +91,9 @@ export const createShortUrl = async ({ originalUrl, customAlias, expiresAt }) =>
     const newUrl = await Url.create({
       shortId: aliasClean,
       originalUrl,
-      expiresAt: expiryDate
+      expiresAt: expiryDate,
+      userId: userId || null,
+      title: title || null
     });
 
     const ttlSeconds = calculateTtl(expiryDate);
@@ -97,9 +101,9 @@ export const createShortUrl = async ({ originalUrl, customAlias, expiresAt }) =>
     return newUrl;
   }
 
-  // 4. Deduplicate (only applicable if URL does not expire)
+  // 4. Deduplicate (only applicable if URL does not expire and belongs to same user / anonymous)
   if (!expiryDate) {
-    const existingUrl = await Url.findOne({ originalUrl, expiresAt: null }).select('shortId originalUrl').lean();
+    const existingUrl = await Url.findOne({ originalUrl, expiresAt: null, userId: userId || null }).select('shortId originalUrl').lean();
     if (existingUrl) {
       await cacheSet(existingUrl.shortId, originalUrl, 86400);
       return existingUrl;
@@ -128,7 +132,9 @@ export const createShortUrl = async ({ originalUrl, customAlias, expiresAt }) =>
   const newUrl = await Url.create({
     shortId,
     originalUrl,
-    expiresAt: expiryDate
+    expiresAt: expiryDate,
+    userId: userId || null,
+    title: title || null
   });
 
   // 7. Write to cache
@@ -187,4 +193,99 @@ export const resolveShortUrl = async (shortId) => {
 
   pendingResolutions.set(shortId, lookupPromise);
   return lookupPromise;
+};
+
+/**
+ * Retrieves all URLs associated with a userId, along with click counts.
+ */
+export const getUserUrls = async (userId) => {
+  const userObjectId = new mongoose.Types.ObjectId(userId);
+  return await Url.aggregate([
+    { $match: { userId: userObjectId } },
+    {
+      $lookup: {
+        from: 'clicklogs', // collection name for ClickLog
+        localField: 'shortId',
+        foreignField: 'shortId',
+        as: 'clicks'
+      }
+    },
+    {
+      $project: {
+        shortId: 1,
+        originalUrl: 1,
+        createdAt: 1,
+        expiresAt: 1,
+        title: 1,
+        clickCount: { $size: '$clicks' }
+      }
+    },
+    { $sort: { createdAt: -1 } }
+  ]);
+};
+
+/**
+ * Deletes a URL and its analytics data for a specific user, invalidating cache.
+ */
+export const deleteUserUrl = async (userId, shortId) => {
+  const urlRecord = await Url.findOneAndDelete({ shortId, userId });
+  if (!urlRecord) {
+    throw new AppError('Short URL not found or you do not have permission to delete it.', 404);
+  }
+
+  // Clean up related analytics click logs
+  await ClickLog.deleteMany({ shortId });
+
+  // Invalidate Redis cache
+  await cacheDelete(shortId);
+  return true;
+};
+
+/**
+ * Updates the custom alias and/or title for a user's URL.
+ */
+export const updateUserUrlAlias = async (userId, shortId, { newAlias, newTitle }) => {
+  // Find URL and check owner
+  const urlRecord = await Url.findOne({ shortId, userId });
+  if (!urlRecord) {
+    throw new AppError('Short URL not found or you do not have permission to modify it.', 404);
+  }
+
+  // Update title if provided
+  if (newTitle !== undefined) {
+    urlRecord.title = newTitle.trim() || null;
+  }
+
+  // Update alias if provided and changed
+  if (newAlias && newAlias.trim() !== urlRecord.shortId) {
+    const aliasClean = newAlias.trim();
+    if (aliasClean.length < 3 || aliasClean.length > 30) {
+      throw new AppError('Custom alias must be between 3 and 30 characters.', 400);
+    }
+    if (!/^[a-zA-Z0-9-_]+$/.test(aliasClean)) {
+      throw new AppError('Custom alias can only contain alphanumeric characters, hyphens, and underscores.', 400);
+    }
+
+    // Check availability of new alias
+    const existingAlias = await Url.findOne({ shortId: aliasClean }).select('_id').lean();
+    if (existingAlias) {
+      throw new AppError('Custom alias is already in use.', 409);
+    }
+
+    const oldShortId = urlRecord.shortId;
+    urlRecord.shortId = aliasClean;
+
+    // Update associated analytics logs (preserve historic data)
+    await ClickLog.updateMany({ shortId: oldShortId }, { shortId: aliasClean });
+
+    // Handle cache updates: invalidate both keys
+    await cacheDelete(oldShortId);
+    await cacheDelete(aliasClean);
+
+    const ttlSeconds = calculateTtl(urlRecord.expiresAt);
+    await cacheSet(aliasClean, urlRecord.originalUrl, ttlSeconds);
+  }
+
+  await urlRecord.save();
+  return urlRecord;
 };
